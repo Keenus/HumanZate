@@ -72,6 +72,26 @@ export type CharacterPosition = 'bottom-right' | 'bottom-left' | 'center' | 'her
     .animate-pen {
       animation: penMove 2s ease-in-out infinite;
     }
+
+    @keyframes typewriter {
+      from { width: 0; }
+      to { width: 100%; }
+    }
+
+    @keyframes blink {
+      0%, 50% { opacity: 1; }
+      51%, 100% { opacity: 0; }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(10px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
   `],
   template: `
     <div class="pointer-events-none z-50 transition-all duration-700 ease-[cubic-bezier(0.2,0.8,0.2,1)]" [ngClass]="containerClasses()">
@@ -115,135 +135,103 @@ export type CharacterPosition = 'bottom-right' | 'bottom-left' | 'center' | 'her
         <div class="absolute inset-4 bg-indigo-600/20 blur-[40px] rounded-full animate-pulse-glow transition-opacity duration-500"
              [class.opacity-0]="isCompact()"></div>
         
-        <!-- Inline SVG Avatar -->
-        <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" class="w-full h-full relative z-10 animate-float drop-shadow-[0_0_30px_rgba(79,70,229,0.3)]">
-          <defs>
-             <linearGradient id="gradBody" x1="0%" y1="0%" x2="100%" y2="100%">
-               <stop offset="0%" style="stop-color:#27272a;stop-opacity:1" /> <!-- zinc-800 -->
-               <stop offset="100%" style="stop-color:#09090b;stop-opacity:1" /> <!-- zinc-950 -->
-             </linearGradient>
-             <linearGradient id="gradVisor" x1="0%" y1="0%" x2="0%" y2="100%">
-               <stop offset="0%" style="stop-color:#312e81;stop-opacity:1" />
-               <stop offset="50%" style="stop-color:#4338ca;stop-opacity:1" />
-               <stop offset="100%" style="stop-color:#1e1b4b;stop-opacity:1" />
-             </linearGradient>
-          </defs>
-
-          <!-- Outer Ring (Rotating) -->
-          <g transform-origin="200 200" class="animate-[spin_12s_linear_infinite] opacity-40">
-             <circle cx="200" cy="200" r="140" fill="none" stroke="#6366f1" stroke-width="1" stroke-dasharray="10 30" />
-             <circle cx="200" cy="200" r="130" fill="none" stroke="#818cf8" stroke-width="2" stroke-dasharray="60 200" />
-          </g>
-
-          <!-- Inner Ring (Counter-Rotating) -->
-          <g transform-origin="200 200" class="animate-[spin_6s_linear_infinite_reverse] opacity-60">
-             <path d="M 200 80 A 120 120 0 0 1 200 320" fill="none" stroke="#6366f1" stroke-width="1.5" />
-          </g>
-
-          <!-- Main Head Group -->
-          <g transform="translate(100, 100)">
-             <!-- Antenna -->
-             <path d="M100 20 L100 50" stroke="#52525b" stroke-width="4" />
-             <circle cx="100" cy="20" r="4" fill="#ef4444" class="animate-pulse">
-                @if(pose() === 'success') { <set attributeName="fill" to="#10b981" /> }
-             </circle>
-
-             <!-- Head Shape -->
-             <path d="M50 160 L150 160 L160 140 L160 80 L130 50 L70 50 L40 80 L40 140 Z" fill="url(#gradBody)" stroke="#3f3f46" stroke-width="2" />
-             
-             <!-- Visor Area (The "Eyes") -->
-             <g transform="translate(50, 80)">
-                <path d="M0 20 L10 50 L90 50 L100 20 L90 0 L10 0 Z" fill="url(#gradVisor)" stroke="#4f46e5" stroke-width="1" />
-                
-                <!-- IDLE STATE: Blue pulsing eyes -->
-                @if (pose() === 'idle') {
-                  <rect x="25" y="20" width="15" height="8" rx="2" fill="#818cf8" class="animate-pulse" />
-                  <rect x="60" y="20" width="15" height="8" rx="2" fill="#818cf8" class="animate-pulse" />
-                }
-                
-                <!-- THINKING STATE: Writing animation - transformation from AI to Human -->
-                @if (pose() === 'thinking') {
-                   <!-- Background for text area -->
-                   <rect x="10" y="15" width="80" height="30" rx="3" fill="#1e1b4b" opacity="0.5" />
-                   
-                   <!-- AI text (robotic, fading out) -->
-                   <text x="50" y="28" text-anchor="middle" font-size="9" fill="#71717a" font-family="monospace" opacity="0.4">
-                     <animate attributeName="opacity" values="0.2;0.5;0.2" dur="2s" repeatCount="indefinite" />
-                     <tspan x="50" dy="0">AI</tspan>
-                   </text>
-                   
-                   <!-- Transformation arrow -->
-                   <path d="M 50 32 L 50 38" stroke="#818cf8" stroke-width="1.5" fill="none" opacity="0.6">
-                     <animate attributeName="opacity" values="0.3;0.8;0.3" dur="1.5s" repeatCount="indefinite" />
-                   </path>
-                   <path d="M 45 36 L 50 38 L 55 36" stroke="#818cf8" stroke-width="1.5" fill="none" opacity="0.6">
-                     <animate attributeName="opacity" values="0.3;0.8;0.3" dur="1.5s" repeatCount="indefinite" />
-                   </path>
-                   
-                   <!-- Human text (H letter being written) -->
-                   <g transform="translate(50, 42)">
-                     <!-- H letter being drawn with writing animation -->
-                     <!-- Left vertical line -->
-                     <path d="M -8 0 L -8 -10" 
-                           stroke="#818cf8" 
-                           stroke-width="2.5" 
-                           fill="none" 
-                           stroke-linecap="round"
-                           stroke-dasharray="12"
-                           opacity="0.9">
-                       <animate attributeName="stroke-dashoffset" values="12;0" dur="0.7s" repeatCount="indefinite" />
-                     </path>
-                     
-                     <!-- Horizontal line -->
-                     <path d="M -8 -5 L 0 -5" 
-                           stroke="#818cf8" 
-                           stroke-width="2.5" 
-                           fill="none" 
-                           stroke-linecap="round"
-                           stroke-dasharray="10"
-                           opacity="0.9">
-                       <animate attributeName="stroke-dashoffset" values="10;0" dur="0.5s" begin="0.35s" repeatCount="indefinite" />
-                     </path>
-                     
-                     <!-- Right vertical line -->
-                     <path d="M 0 0 L 0 -10" 
-                           stroke="#818cf8" 
-                           stroke-width="2.5" 
-                           fill="none" 
-                           stroke-linecap="round"
-                           stroke-dasharray="12"
-                           opacity="0.9">
-                       <animate attributeName="stroke-dashoffset" values="12;0" dur="0.7s" begin="0.5s" repeatCount="indefinite" />
-                     </path>
-                     
-                     <!-- Pen/cursor dot following the writing path -->
-                     <circle cx="-8" cy="0" r="2.5" fill="#fbbf24" opacity="0.9">
-                       <animate attributeName="cy" values="0;-10;-10;-5;-5;0;0;-10" dur="2s" repeatCount="indefinite" />
-                       <animate attributeName="cx" values="-8;-8;-8;-8;0;0;0;0" dur="2s" repeatCount="indefinite" />
-                       <animate attributeName="opacity" values="0.6;1;0.6" dur="0.4s" repeatCount="indefinite" />
-                     </circle>
-                   </g>
-                   
-                   <!-- Subtle glow effect -->
-                   <ellipse cx="50" cy="42" rx="15" ry="8" fill="#818cf8" opacity="0.1">
-                     <animate attributeName="opacity" values="0.05;0.15;0.05" dur="2s" repeatCount="indefinite" />
-                   </ellipse>
-                }
-                
-                <!-- SUCCESS STATE: Green check/smile -->
-                @if (pose() === 'success') {
-                   <path d="M 30 25 L 45 35 L 70 15" fill="none" stroke="#34d399" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
-                }
-             </g>
-
-             <!-- Mouth/Speaker Grill -->
-             <g transform="translate(75, 140)" class="opacity-50">
-                <rect x="0" y="0" width="50" height="2" fill="#52525b" />
-                <rect x="5" y="5" width="40" height="2" fill="#52525b" />
-                <rect x="10" y="10" width="30" height="2" fill="#52525b" />
-             </g>
-          </g>
-        </svg>
+        <!-- Typing Animation Container -->
+        <div class="w-full h-full relative z-10 flex items-center justify-center">
+          
+          <!-- Compact Logo (when collapsed) -->
+          @if (isCompact()) {
+            <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-zinc-200 to-zinc-400 flex items-center justify-center shadow-lg transition-all duration-300">
+              <span class="font-serif text-black font-bold text-lg italic">H</span>
+            </div>
+          }
+          
+          <!-- Expanded View with Typing Animation -->
+          @if (!isCompact()) {
+            <div class="flex flex-col items-center justify-center gap-4 w-full h-full">
+              
+              <!-- IDLE STATE: Simple H letter -->
+              @if (pose() === 'idle') {
+                <div class="relative">
+                  <div class="w-24 h-24 rounded-full bg-gradient-to-tr from-zinc-200 to-zinc-400 flex items-center justify-center shadow-lg">
+                    <span class="font-serif text-black font-bold text-5xl italic">H</span>
+                  </div>
+                  <div class="absolute inset-0 rounded-full bg-indigo-500/20 blur-xl animate-pulse"></div>
+                </div>
+              }
+              
+              <!-- THINKING STATE: Typing animation with transformation -->
+              @if (pose() === 'thinking') {
+                <div class="flex flex-col items-center gap-3 min-w-[200px] relative">
+                  <!-- Typewriter effect container -->
+                  <div class="relative bg-zinc-900/90 backdrop-blur-md border border-indigo-500/30 rounded-xl px-8 py-5 shadow-2xl overflow-hidden">
+                    <!-- Animated background gradient -->
+                    <div class="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-transparent to-indigo-500/5 animate-pulse"></div>
+                    
+                    <!-- Content -->
+                    <div class="relative z-10">
+                      <!-- AI text being deleted -->
+                      <div class="text-center mb-3 transition-opacity duration-700" 
+                           [style.opacity]="aiTextOpacity()">
+                        <span class="text-zinc-400 font-mono text-sm tracking-wider">
+                          AI
+                          <span class="inline-block w-0.5 h-4 bg-zinc-400 ml-1.5 animate-[blink_1s_infinite]"></span>
+                        </span>
+                      </div>
+                      
+                      <!-- Transformation arrow -->
+                      <div class="flex justify-center mb-3">
+                        <svg width="24" height="24" viewBox="0 0 24 24" class="text-indigo-400">
+                          <path d="M 12 6 L 12 18 M 6 12 L 12 18 L 18 12" 
+                                stroke="currentColor" 
+                                stroke-width="2.5" 
+                                fill="none" 
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                opacity="0.7">
+                            <animate attributeName="opacity" values="0.4;0.9;0.4" dur="1.8s" repeatCount="indefinite" />
+                            <animateTransform attributeName="transform" type="translate" values="0,0;0,2;0,0" dur="1.8s" repeatCount="indefinite" />
+                          </path>
+                        </svg>
+                      </div>
+                      
+                      <!-- Human text being typed -->
+                      <div class="text-center">
+                        <span class="text-indigo-300 font-serif text-xl font-bold tracking-wide">
+                          {{ humanText() }}
+                          <span class="inline-block w-1 h-6 bg-indigo-400 ml-1.5 animate-[blink_0.8s_infinite]"></span>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Subtle glow effect -->
+                  <div class="absolute -inset-8 bg-indigo-500/20 blur-3xl rounded-full -z-10 animate-pulse"></div>
+                </div>
+              }
+              
+              <!-- SUCCESS STATE: Checkmark with H -->
+              @if (pose() === 'success') {
+                <div class="relative">
+                  <div class="w-24 h-24 rounded-full bg-gradient-to-tr from-emerald-200 to-emerald-400 flex items-center justify-center shadow-lg">
+                    <svg width="40" height="40" viewBox="0 0 40 40" class="text-emerald-700">
+                      <path d="M 10 20 L 18 28 L 30 12" 
+                            stroke="currentColor" 
+                            stroke-width="4" 
+                            fill="none" 
+                            stroke-linecap="round" 
+                            stroke-linejoin="round"
+                            class="animate-[fadeIn_0.3s_ease-out]">
+                        <animate attributeName="stroke-dashoffset" values="30;0" dur="0.5s" fill="freeze" />
+                        <animate attributeName="stroke-dasharray" values="30;30" dur="0.5s" fill="freeze" />
+                      </path>
+                    </svg>
+                  </div>
+                  <div class="absolute inset-0 rounded-full bg-emerald-500/20 blur-xl animate-pulse"></div>
+                </div>
+              }
+            </div>
+          }
+        </div>
 
       </div>
     </div>
@@ -258,6 +246,12 @@ export class CharacterComponent implements OnDestroy {
 
   isCompact = signal(false);
   private compactTimer: any;
+  
+  humanText = signal('');
+  aiTextOpacity = signal(1);
+  private typingInterval: any;
+  private typingIndex = 0;
+  private readonly humanWord = 'Human';
 
   constructor() {
     effect(() => {
@@ -265,6 +259,17 @@ export class CharacterComponent implements OnDestroy {
       const currentPose = this.pose();
       const currentMessage = this.message();
       const currentPos = this.position();
+
+      // Handle typing animation for thinking state
+      if (currentPose === 'thinking') {
+        this.startTypingAnimation();
+      } else {
+        this.stopTypingAnimation();
+        if (currentPose === 'idle') {
+          this.humanText.set('');
+          this.aiTextOpacity.set(1);
+        }
+      }
 
       // If we are doing something active (thinking/success/message/center), expand immediately
       if (currentPose !== 'idle' || currentMessage || currentPos === 'center' || currentPos === 'hero') {
@@ -274,6 +279,50 @@ export class CharacterComponent implements OnDestroy {
         this.scheduleCompact();
       }
     }, { allowSignalWrites: true });
+  }
+
+  private startTypingAnimation() {
+    this.stopTypingAnimation();
+    this.typingIndex = 0;
+    this.humanText.set('');
+    this.aiTextOpacity.set(1);
+    
+    const cycle = () => {
+      // Fade out AI text
+      setTimeout(() => {
+        this.aiTextOpacity.set(0);
+      }, 600);
+      
+      // Start typing Human after AI fades
+      setTimeout(() => {
+        this.typingIndex = 0;
+        this.humanText.set('');
+        
+        this.typingInterval = setInterval(() => {
+          if (this.typingIndex < this.humanWord.length) {
+            this.humanText.set(this.humanWord.substring(0, this.typingIndex + 1));
+            this.typingIndex++;
+          } else {
+            // Wait, then reset cycle
+            clearInterval(this.typingInterval);
+            setTimeout(() => {
+              this.humanText.set('');
+              this.aiTextOpacity.set(1);
+              cycle(); // Restart cycle
+            }, 800);
+          }
+        }, 120); // Type speed
+      }, 800);
+    };
+    
+    cycle();
+  }
+
+  private stopTypingAnimation() {
+    if (this.typingInterval) {
+      clearInterval(this.typingInterval);
+      this.typingInterval = null;
+    }
   }
 
   containerClasses = computed(() => {
@@ -346,5 +395,6 @@ export class CharacterComponent implements OnDestroy {
 
   ngOnDestroy() {
     if (this.compactTimer) clearTimeout(this.compactTimer);
+    this.stopTypingAnimation();
   }
 }
