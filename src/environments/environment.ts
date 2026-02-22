@@ -1,4 +1,4 @@
 export const environment = {
     production: false,
-    geminiApiKey: process.env.geminiApiKey || 'BRAK API KEY',
+    geminiApiKey: 'BRAK_API_KEY_DEV', // Fallback dla developmentu
 };

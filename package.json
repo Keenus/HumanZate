@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "ng serve",
+    "prebuild": "node scripts/generate-env.js",
     "build": "ng build",
+    "build:prod": "ng build --configuration=production",
     "preview": "ng serve --configuration=production"
   },
   "dependencies": {

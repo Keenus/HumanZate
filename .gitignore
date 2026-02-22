@@ -25,5 +25,6 @@ dist-ssr
 /node_modules
 /dist
 /.angular
-/src/environments/environment*.ts
+# Ignoruj tylko production environment (zawiera prawdziwy API key)
+/src/environments/environment.prod.ts
 .env.local
