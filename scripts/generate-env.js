@@ -6,7 +6,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // Pobierz GEMINI_API_KEY z zmiennych środowiskowych Vercel
-const geminiApiKey = process.env.GEMINI_API_KEY || '';
+const geminiApiKey = process.env.geminiApiKey || '';
 
 if (!geminiApiKey) {
     console.warn('⚠️  WARNING: GEMINI_API_KEY nie jest ustawiona. Użyję pustego stringa.');
