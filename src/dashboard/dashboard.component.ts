@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, inject, computed } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { RateLimitService } from '../services/rate-limit.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -12,9 +13,48 @@ import { RouterLink } from '@angular/router';
         <!-- Welcome Section -->
         <div class="mb-12">
           <h1 class="text-3xl font-semibold text-white mb-3">Welcome to HumanZate</h1>
-          <p class="text-zinc-400 text-lg max-w-2xl">
+          <p class="text-zinc-400 text-lg max-w-2xl mb-6">
             Select a tool below to enhance your communication, generate content, or refine your professional presence.
           </p>
+          
+          <!-- Usage Stats -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <div class="bg-zinc-900/50 border border-zinc-800 rounded-lg p-4">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-medium text-zinc-500 uppercase tracking-wide">Daily Limit</span>
+                <span class="text-xs font-mono" [class.text-zinc-400]="rateLimit.remainingDaily() > 0" [class.text-yellow-400]="rateLimit.remainingDaily() <= 3 && rateLimit.remainingDaily() > 0" [class.text-red-400]="rateLimit.remainingDaily() === 0">
+                  {{ rateLimit.remainingDaily() }}/{{ rateLimit.getStats().daily.limit }}
+                </span>
+              </div>
+              <div class="w-full bg-zinc-800 rounded-full h-2">
+                <div class="bg-blue-500 h-2 rounded-full transition-all" [style.width.%]="(rateLimit.remainingDaily() / rateLimit.getStats().daily.limit) * 100"></div>
+              </div>
+            </div>
+            
+            <div class="bg-zinc-900/50 border border-zinc-800 rounded-lg p-4">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-medium text-zinc-500 uppercase tracking-wide">Weekly Limit</span>
+                <span class="text-xs font-mono text-zinc-400">
+                  {{ rateLimit.remainingWeekly() }}/{{ rateLimit.getStats().weekly.limit }}
+                </span>
+              </div>
+              <div class="w-full bg-zinc-800 rounded-full h-2">
+                <div class="bg-emerald-500 h-2 rounded-full transition-all" [style.width.%]="(rateLimit.remainingWeekly() / rateLimit.getStats().weekly.limit) * 100"></div>
+              </div>
+            </div>
+            
+            <div class="bg-zinc-900/50 border border-zinc-800 rounded-lg p-4">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-medium text-zinc-500 uppercase tracking-wide">Monthly Limit</span>
+                <span class="text-xs font-mono text-zinc-400">
+                  {{ rateLimit.remainingMonthly() }}/{{ rateLimit.getStats().monthly.limit }}
+                </span>
+              </div>
+              <div class="w-full bg-zinc-800 rounded-full h-2">
+                <div class="bg-amber-500 h-2 rounded-full transition-all" [style.width.%]="(rateLimit.remainingMonthly() / rateLimit.getStats().monthly.limit) * 100"></div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Grid -->
@@ -62,4 +102,6 @@ import { RouterLink } from '@angular/router';
     </div>
   `
 })
-export class DashboardComponent {}
+export class DashboardComponent {
+  rateLimit = inject(RateLimitService);
+}

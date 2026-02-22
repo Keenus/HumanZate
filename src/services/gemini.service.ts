@@ -1,15 +1,24 @@
 
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { GoogleGenAI } from "@google/genai";
 import { environment } from '../../src/environments/environment';
+import { RateLimitService } from './rate-limit.service';
 
 export type ToolType = 'humanize' | 'product' | 'offer' | 'email';
+
+export class RateLimitError extends Error {
+    constructor(public reason: string) {
+        super(reason);
+        this.name = 'RateLimitError';
+    }
+}
 
 @Injectable({
     providedIn: 'root'
 })
 export class GeminiService {
     private ai: GoogleGenAI;
+    private rateLimit = inject(RateLimitService);
 
     private readonly PROMPTS: Record<string, string> = {
         humanize: `You rewrite AI-generated text so it sounds like it was written by a real person.
@@ -148,9 +157,28 @@ Return only the email text.`
         });
     }
 
-    async rewriteText(input: string, type: ToolType = 'humanize', history: { role: 'user' | 'model', parts: [{ text: string }] }[] = []): Promise<string> {
+    async rewriteText(
+        input: string, 
+        type: ToolType = 'humanize', 
+        history: { role: 'user' | 'model', parts: [{ text: string }] }[] = [],
+        brief?: string
+    ): Promise<string> {
+        // Sprawdź rate limit przed wywołaniem API
+        const rateCheck = this.rateLimit.tryUse();
+        if (!rateCheck.success) {
+            throw new RateLimitError(rateCheck.reason || 'Limit użycia został przekroczony.');
+        }
+
         try {
-            const systemInstruction = this.PROMPTS[type] || this.PROMPTS['humanize'];
+            let systemInstruction = this.PROMPTS[type] || this.PROMPTS['humanize'];
+            
+            // Dodaj brief do system instruction jeśli jest podany
+            if (brief) {
+                const briefInstructions = this.getBriefInstruction(type, brief);
+                if (briefInstructions) {
+                    systemInstruction += '\n\nADDITIONAL REQUIREMENTS:\n' + briefInstructions;
+                }
+            }
 
             // If history exists, use chat mode
             if (history.length > 0) {
@@ -184,5 +212,30 @@ Return only the email text.`
             console.error('Gemini API Error:', error);
             throw new Error('Failed to process text.');
         }
+    }
+
+    private getBriefInstruction(type: ToolType, brief: string): string {
+        const briefInstructions: Record<string, Record<string, string>> = {
+            humanize: {
+                'casual': 'Write in a casual, conversational tone. Use everyday language, contractions, and a friendly approach. Make it sound like you\'re talking to a friend.',
+                'professional': 'Write in a professional, formal tone. Use proper grammar, avoid contractions, and maintain a business-appropriate style. Suitable for corporate communications.',
+                'creative': 'Write in a creative, engaging style. Use vivid language, varied sentence structures, and make the text more interesting and dynamic. Add personality while keeping it natural.',
+                'concise': 'Write in a concise, direct style. Remove unnecessary words, get straight to the point, and make every sentence count. Be clear and efficient.'
+            },
+            product: {
+                'benefits': 'Focus heavily on the benefits to the customer. Explain how the product improves their life, solves problems, or creates value. Lead with "what\'s in it for them" rather than features.',
+                'features': 'Highlight the specific features and specifications. Provide technical details, measurements, capabilities, and what the product can do. Be precise and informative.',
+                'emotional': 'Create an emotional connection with the reader. Use storytelling elements, appeal to feelings, desires, and aspirations. Make them imagine how the product fits into their ideal life.',
+                'technical': 'Provide detailed technical information. Include specifications, materials, dimensions, performance metrics, and technical capabilities. Be precise and data-driven.'
+            },
+            offer: {
+                'value': 'Emphasize the value proposition and ROI. Show clear benefits, cost savings, efficiency gains, and return on investment. Make the value obvious and quantifiable where possible.',
+                'urgency': 'Create a sense of urgency and scarcity. Mention limited availability, time-sensitive offers, or exclusive opportunities. Encourage immediate action without being pushy.',
+                'trust': 'Build trust and credibility. Include testimonials, guarantees, certifications, or references. Show reliability, experience, and commitment to quality.',
+                'custom': 'Emphasize customization and personalization. Show that this is a tailored solution specifically for their needs, not a generic offer. Highlight individual attention and bespoke approach.'
+            }
+        };
+
+        return briefInstructions[type]?.[brief] || '';
     }
 }
