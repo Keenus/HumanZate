@@ -229,7 +229,7 @@ export class RateLimitService {
             // Walidacja - usuń nieprawidłowe rekordy
             return Array.isArray(parsed) ? parsed.filter((r: any) => 
                 r && typeof r.count === 'number' && typeof r.resetAt === 'number'
-            )) : [];
+            ) : [];
         } catch {
             return [];
         }
